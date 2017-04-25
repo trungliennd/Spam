@@ -7,7 +7,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import MessageSMS.SMS;
@@ -20,14 +22,45 @@ public class SeparatingData {
 	public static final String PATH_DATA_III = "F:\\Java\\Spam\\data\\data_3.txt";
 	public static final String PATH_DATA_IV = "F:\\Java\\Spam\\data\\data_4.txt";
 	public static final String PATH_DATA_PREDICT = "F:\\Java\\Spam\\data\\predict.txt";
+	
 	private BufferedReader bufferedReader;
 	private BufferedWriter bufferedWriter;
 	
 	private List<SMS> dataTrain = new ArrayList<SMS>();
 	private List<SMS> dataTest = new ArrayList<SMS>();
+	private Map<String,String> convertChar = new HashMap<String, String>();
+	
+	private String listChar = "ạảâẩẳằắầấăáàẫãậặẠẢÂẨẲẰẮẦẤĂÁÀẪÃẬẶởỞôÔỏỎổỔơớỚƠóÓốỐớỚỗỖòÒồỒõÕọỌộỘợỢỡỠđĐêÊếẾệỆềỀẽẼễỄẹẸéÉèÈẻẺểỂịỊỉỈĩĨìÌíÍưƯụỤữỮựỰứỨừỪửỬùÙúÚũŨủỦýÝỳỲỷỶỹỸỵỴ";                                                                             
+ 	private String listConv = "aaaaaaaaaaaaaaaaAAAAAAAAAAAAAAAAoOoOoOoOooOOoOoOoOoOoOoOoOoOoOoOoOdDeEeEeEeEeEeEeEeEeEeEeEiIiIiIiIiIuUuUuUuUuUuUuUuUuUuUuUyYyYyYyYyY";
 	
 	public SeparatingData() {
 		
+	}
+	
+	public void mapConvert() {
+		int len = listChar.length();
+		for(int i = 0;i < len;i++) {
+			Character key = new Character(listChar.charAt(i));
+			Character value = new Character(listConv.charAt(i));
+			convertChar.put(key.toString(), value.toString());
+		}
+	}
+	
+	public String convertStringNotSign(String strings) {
+		int len = strings.length();
+		StringBuilder stringbBuilder = new StringBuilder();
+		for(int i = 0;i < len;i++) {
+			Character key = strings.charAt(i);
+			if(key.equals('\u0323') || key.equals('\u0301') || key.equals('\u0309') || key.equals('\u0300') || key.equals('\u0303')){
+				continue;
+			}
+			if(convertChar.containsKey(key.toString())) {
+				stringbBuilder.append(convertChar.get(key.toString()));
+			}else {
+				stringbBuilder.append(key.toString());
+			}
+		}
+		return stringbBuilder.toString();
 	}
 	
 	public void speratingData(Integer n) throws IOException {
@@ -117,6 +150,37 @@ public class SeparatingData {
 		}
 	}
 	
+	/*public void readDataTrain(String Path) throws IOException {
+		bufferedReader = new BufferedReader(new FileReader(new File(Path)));
+		String line = bufferedReader.readLine();
+		while(line != null) {
+			String data[] = processMessage(line);
+			SMS sms = new SMS(data[1],data[1].length(),Integer.parseInt(data[0]));
+			dataTrain.add(sms);
+			line = bufferedReader.readLine();
+		}
+		bufferedReader.close();
+	}
+	*/
+	public void ConvertToFile(String fileIn,String fileOut) throws IOException {
+		bufferedReader = new BufferedReader(new FileReader(new File(fileIn)));
+		bufferedWriter = new BufferedWriter(new FileWriter(new File(fileOut)));
+		String line = bufferedReader.readLine();
+		//int count = 1;
+		while(line != null) {
+			String strings = convertStringNotSign(line);
+			bufferedWriter.write(strings);
+			bufferedWriter.write("\n");
+			line = bufferedReader.readLine();
+			//count++;
+			//if(count == 3) System.out.println(line);
+		}
+		
+		bufferedReader.close();
+		bufferedWriter.close();
+		
+	}
+	
 	public void readDataTrain(String pathI) throws IOException{
 			bufferedReader = new BufferedReader(new FileReader(new File(pathI)));
 			String line = bufferedReader.readLine();
@@ -131,12 +195,12 @@ public class SeparatingData {
 	
 	public String processDataMessages(String line){
 		String strings = line.replaceAll("\\.\\.\\.","???");
-		String rex = "[,.\"()]";
+		String rex = "[,.\"()\\[\\]]";
 		strings = strings.replaceAll(rex," ");
 		strings = strings.replaceAll("\\?\\?\\?","...");
 		strings = strings.replaceAll("\\s+"," ");
 		strings = strings.toLowerCase();
-		//System.out.println(strings);
+		strings = strings.trim();
 		return strings;
 	}
 	
@@ -192,11 +256,16 @@ public class SeparatingData {
 	
 	public static void main(String args[]) throws IOException {
 		SeparatingData s = new SeparatingData();
-	//	s.speratingData(100);
-	//	s.readDataTrain(SeparatingData.PATH_DATA);
-	//	s.swapData(1000);
-	//	s.writeFile("data\\train_swap.txt");
-		s.checkedPredict(SeparatingData.PATH_DATA_PREDICT, SeparatingData.PATH_DATA_IV);
+		//System.out.println(s.processDataMessages("[QC] DV CHUYEN TIEN cua Viettel, Quy khach co the chuyen tien va nhan tien tai Nha hoac cac Diem chuyen tien cua Viettel tren toan quoc.LH 18008098 (mien phi).Tu choi QC, soan TC3 gui 199."));
+//		String e = s.processDataMessages("QC Ban da nhan duoc LOI CHUC NAM MOI tu mot nguoi ban ( yeu cau giau ten ) Loi chuc kem theo qua tang goi DV");
+//		System.out.println(e);
+//		System.out.println(e.length());
+		
+	//	s.speratingData(300);
+	/*	s.readDataTrain("data\\sms_one.txt");
+		s.swapData(1000);
+		s.writeFile("data\\train_swap.txt");*/
+		s.checkedPredict("F:\\Java\\Spam\\data\\result.txt", "F:\\Java\\Spam\\data\\test_new.txt");
 		//s.readDataTrain(SeparatingData.PATH_DATA_I, SeparatingData.PATH_DATA_II, SeparatingData.PATH_DATA_III);
 		/*List<SMS> listSMS = s.getDataTrain();
 		int size = listSMS.size();

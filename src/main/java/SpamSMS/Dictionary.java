@@ -38,6 +38,17 @@ public class Dictionary {
 		makeDictionary();
 	}
 	
+	public Dictionary(String path) {
+		
+		data = new SeparatingData();
+		try{
+			data.readDataTrain(path);
+		}catch(IOException e) {
+			e.printStackTrace();
+		}
+		makeDictionary();
+	}
+	
 	public String[] getListNGramToMessages(SMS sms){
 		String string = data.processDataMessages(sms.getMessage());
 		int len = string.length();
